@@ -1,0 +1,81 @@
+---
+title: "San Francisco Tree Visualization"
+output: html_notebook
+---
+Download the [dataset](https://data.sfgov.org/City-Infrastructure/Street-Tree-List/tkzw-k3nq/data) from SF Data and import into R. 
+
+```{r}
+library(readr)
+Street_Tree_Map <- read_csv("C:/Users/Megan Stafford/Downloads/Street_Tree_Map.csv")
+```
+
+Select for three columns and take away missing location values.
+
+```{r}
+library(tidyverse)
+nona <- select(Street_Tree_Map, Latitude, Longitude, qSpecies) %>%
+  filter(Longitude != "")
+```
+
+Find the most common species and choose 8 of them to use in the map. 
+
+```{r}
+
+#t <- table(nona$qSpecies)
+#t
+by_species <- filter(nona, qSpecies %in% c("Tristaniopsis laurina :: Swamp Myrtle", "Prunus serrulata 'Kwanzan' :: Kwanzan Flowering Cherry", "Lophostemon confertus :: Brisbane Box", "Magnolia grandiflora :: Southern Magnolia", "Metrosideros excelsa :: New Zealand Xmas Tree","Pittosporum undulatum :: Victorian Box", "Platanus x hispanica :: Sycamore: London Plane", "Prunus cerasifera :: Cherry Plum"))
+
+```
+The top 8 values are: 
+                      Tristaniopsis laurina :: Swamp Myrtle 
+                                                                             6834
+                      Prunus serrulata 'Kwanzan' :: Kwanzan Flowering Cherry 
+                                                                             5679            
+                      Lophostemon confertus :: Brisbane Box 
+                                                                             8258
+                      Magnolia grandiflora :: Southern Magnolia 
+                                                                             6195
+                      Metrosideros excelsa :: New Zealand Xmas Tree 
+                                                                             8630                      
+                     Pittosporum undulatum :: Victorian Box 
+                                                                             6934
+                     Platanus x hispanica :: Sycamore: London Plane 
+                                                                            11356 
+                     Prunus cerasifera :: Cherry Plum 
+                                                                             6702
+                                                                             
+
+Create a dynamic map with plotly
+```{r}
+library(ggplot2)
+library(ggmap)
+qplot(Longitude, Latitude, data = by_species, color = qSpecies,
+      xlab = NULL,
+      ylab = NULL,
+      labs(color = "Species of Tree")) 
+
+
+```
+
+There's an outlier shifting the graph lower. It needs to be filtered out. 
+
+```{r}
+no_outlier <- filter(by_species, Latitude >= 37.6)
+qplot(Longitude, Latitude, data = no_outlier, colour = qSpecies, 
+#      fill=factor(outcome,labels=c("low","high")
+      maptype = "toner-background",
+      xlab = NULL,
+      ylab = NULL)
+```
+
+Now, using plotly:
+
+```{r}
+library(plotly)
+qplot(Longitude, Latitude, data = no_outlier, colour = qSpecies, 
+#      fill=factor(outcome,labels=c("low","high")
+      maptype = "toner-background",
+      xlab = NULL,
+      ylab = NULL)%>%
+  ggplotly()
+```
